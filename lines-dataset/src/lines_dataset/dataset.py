@@ -7,7 +7,7 @@ from .meta import Meta
 
 K = TypeVar('K', bound=LiteralString)
 
-def zip_files(files: Mapping[str, Sequence[str]]) -> Iterable[Mapping[str, str]]:
+def zip_files(files: Mapping[K, Sequence[str]]) -> Iterable[Mapping[K, str]]:
   iters = {
     key: iter(fs.concat_lines(file))
     for key, file in files.items()
@@ -53,15 +53,15 @@ class Dataset(Iterable[Mapping[str, str]]):
     yield from fs.concat_lines(self.files(key))
 
   def samples(self, *keys: K) -> Iterable[Mapping[K, str]]:
-    keys = keys or list(self.meta.files.keys())
+    keys = keys or list(self.meta.files.keys()) # type: ignore
     files = {
       key: self.files(key)
       for key in keys
     }
     yield from zip_files(files)
 
-  def __iter__(self) -> Iterable[Mapping[str, str]]:
-    return self.samples()
+  def __iter__(self):
+    return iter(self.samples())
 
   def __len__(self) -> int:
     return self.meta.samples
