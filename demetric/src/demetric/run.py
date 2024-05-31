@@ -37,6 +37,12 @@ class Run:
       with open(self.meta_path, 'w') as f:
         json.dump(meta, f, indent=2)
 
+  def make_path(self, path: str):
+    """Returns a path relative to the run's directory, and creates intermediate folders as needed"""
+    full_path = os.path.join(self.path, path)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    return full_path
+
   @property
   def meta_path(self):
     return os.path.join(self.path, 'meta.json')
@@ -69,7 +75,7 @@ class Run:
   def plot(self, metric: str) -> 'plot.Plot':
     """Plot `metric`"""
   @overload
-  def plot(self, metrics: Sequence[str]) -> 'plot.Plot':
+  def plot(self, metric: str, *metrics: str) -> 'plot.Plot':
     """Plot all `metrics` into a same plot"""
   @overload
   def plot(self, *, without_metrics: Container[str]) -> 'plot.Plot':
@@ -78,17 +84,17 @@ class Run:
   def plot(self) -> 'plot.Plot':
     """Plot all metrics into a same plot"""
 
-  def plot(self, metric=None, *, without_metrics=None):
-    if metric is None:
+  def plot(self, *metrics, without_metrics=None):
+    if len(metrics) == 0:
       if without_metrics is not None:
         metrics = { m: self.read(m) for m in self.metrics() if m not in without_metrics }
         return self._plot_metrics(metrics)
       else:
         return self._plot_metrics(self.read_all())
-    elif isinstance(metric, str):
-      return self._plot_metric(metric)
+    elif len(metrics) == 1:
+      return self._plot_metric(metrics[0])
     else:
-      return self._plot_metrics({ m: self.read(m) for m in metric })
+      return self._plot_metrics({ m: self.read(m) for m in metrics })
 
   def _plot_metric(self, metric: str):
     df = self.read(metric)
@@ -98,7 +104,7 @@ class Run:
     p.ax.set_ylabel(metric)
     return p
 
-  def _plot_metrics(self, metrics: Mapping[str, Sequence[str]]):
+  def _plot_metrics(self, metrics: Mapping):
     p = plot.metrics(metrics)
     p.ax.legend()
     p.ax.set_title(f'{self.id}: Metrics over steps')

@@ -1,25 +1,10 @@
-from typing_extensions import Iterable, Sequence, Mapping, TypeVar, LiteralString
+from typing_extensions import Iterable, Mapping, TypeVar, LiteralString
 from dataclasses import dataclass
 import os
-from glob import glob
-import fs
+from haskellian import Iter, iter as I, dicts as D
 from .meta import Meta
 
 K = TypeVar('K', bound=LiteralString)
-
-def zip_files(files: Mapping[K, Sequence[str]]) -> Iterable[Mapping[K, str]]:
-  iters = {
-    key: iter(fs.concat_lines(file))
-    for key, file in files.items()
-  }
-  while True:
-    try:
-      yield {
-        key: next(it)
-        for key, it in iters.items()
-      }
-    except StopIteration:
-      break
 
 @dataclass
 class Dataset(Iterable[Mapping[str, str]]):
@@ -44,21 +29,29 @@ class Dataset(Iterable[Mapping[str, str]]):
   def keys(self):
     return list(self.meta.files.keys())
   
-  def files(self, key: str) -> Sequence[str]:
+  def file(self, key: str) -> Meta.File | None:
     if key in self.meta.files:
-      return glob(os.path.join(self.base_path, self.meta.files[key]))
-    return []
+      file = self.meta.files[key]
+      return Meta.File(file=os.path.join(self.base_path, file.file), compression=file.compression)
+    return None
   
+  @I.lift
   def iterate(self, key: str) -> Iterable[str]:
-    yield from fs.concat_lines(self.files(key))
+    file = self.file(key)
+    if file:
+      if file.compression == 'zstd':
+        from .compression import iterate
+        yield from iterate(file.file)
+      else:
+        with open(file.file) as f:
+          yield from f
 
-  def samples(self, *keys: K) -> Iterable[Mapping[K, str]]:
+  def samples(self, *keys: K) -> Iter[Mapping[K, str]]:
     keys = keys or list(self.meta.files.keys()) # type: ignore
-    files = {
-      key: self.files(key)
-      for key in keys
-    }
-    yield from zip_files(files)
+    return D.zip({
+      k: self.iterate(k)
+      for k in keys
+    })
 
   def __iter__(self):
     return iter(self.samples())
