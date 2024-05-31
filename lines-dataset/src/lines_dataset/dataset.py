@@ -1,4 +1,4 @@
-from typing import Iterable, Sequence, Mapping, TypeVar, LiteralString
+from typing_extensions import Iterable, Sequence, Mapping, TypeVar, LiteralString
 from dataclasses import dataclass
 import os
 from glob import glob

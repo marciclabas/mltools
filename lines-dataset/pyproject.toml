@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lines-dataset"
-version = "0.1.3"
+version = "0.1.6"
 authors = [
   {name="Marcel Claramunt", email="marcel@moveread.com"}
 ]
 description = "Simple tools for storing inputs + labels datasets as one sample per line"
 dependencies = [
-  "pydantic"
+  "pydantic", "fs-tools"
 ]
 requires-python = ">=3.10"
 readme = {file="README.md", content-type="text/markdown"}
