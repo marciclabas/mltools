@@ -1,6 +1,4 @@
-from .run import Run
-from .runs import Runs
-from .comparing import compare
-from . import plot
+from .run import Run, runs
+from .agg import readall, compare, concat
 
-__all__ = ['Run', 'Runs', 'plot', 'compare']
+__all__ = ['Run', 'runs', 'readall', 'compare', 'concat']

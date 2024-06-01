@@ -1,3 +1,56 @@
 # Lines Dataset
 
-> Simple tools for storing inputs + labels datasets as one sample per line
+> Dead simple standard for storing/loading datasets as lines of text. Supports zstd compression.
+
+```bash
+pip install lines-dataset
+```
+
+### Format
+
+A dataset folder looks like this:
+
+```
+my-dataset/
+  meta.json
+  my-inputs.txt
+  my-compressed-labels.txt.zst
+  other-labels.txt.zst
+  ...
+```
+
+`meta.json`:
+```json
+{
+  "lines-dataset": {
+    "inputs": {
+      "file": "my-inputs.txt",
+      "samples": 3000 // optionally specify the number of lines
+    },
+    "labels": {
+      "file": "my-compressed-labels.txt.zst",
+      "compression": "zstd",
+      "samples": 3000
+    },
+    "other-labels": {
+      "file": "other-labels.txt.zst",
+      "compression": "zstd",
+      "samples": 2000 // not all files need to have the same number of lines, as long as samples match line by line. The shortest file will determine the length of the dataset.
+    },
+  },
+  // you can add other stuff if you want to
+}
+```
+
+```python
+import lines_dataset as lds
+
+ds = lds.Dataset.read('path/to/my-dataset')
+num_samples = ds.len('inputs', 'labels') # int | None
+
+for x in ds.samples('inputs', 'labels'):
+  x['inputs'] # "the first line of inputs.txt\n"
+  x['labels'] # "the decompressed first line of labels.txt.zst\n"
+```
+
+And that's it! Simple.

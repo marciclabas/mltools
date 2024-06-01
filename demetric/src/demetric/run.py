@@ -1,63 +1,45 @@
-from typing import Sequence, Container, Mapping, NamedTuple, Any, overload
+from dataclasses import dataclass
 import os
-from shutil import rmtree
-import json
-from . import plot
+from glob import glob
 
-class Entry(NamedTuple):
-  step: int
-  value: float
-
+@dataclass
 class Run:
 
-  id: str
-  base_path: str
-  overwrite: bool = False
-
-  def __repr__(self):
-    with open(self.meta_path) as f:
-      meta = json.load(f)
-    return f'Run({self.id}, {meta})'
-
-
-  def __init__(
-    self, id: str, base_path: str, *,
-    meta: Any = None, overwrite: bool = False
-  ):
-    
-    self.id = id
-    self.base_path = base_path
-    self.path = os.path.join(self.base_path, self.id)
-
-    if overwrite:
-      rmtree(self.path, ignore_errors=True)
-
-    os.makedirs(self.path, exist_ok=True)
-    if meta:
-      with open(self.meta_path, 'w') as f:
-        json.dump(meta, f, indent=2)
-
-  def make_path(self, path: str):
-    """Returns a path relative to the run's directory, and creates intermediate folders as needed"""
-    full_path = os.path.join(self.path, path)
-    os.makedirs(os.path.dirname(full_path), exist_ok=True)
-    return full_path
+  path: str
 
   @property
-  def meta_path(self):
-    return os.path.join(self.path, 'meta.json')
+  def id(self):
+    return os.path.basename(os.path.abspath(self.path))
+  
+  def __repr__(self) -> str:
+    return f'Run(id="{self.id}", path="{self.path}")'
 
-  @property
-  def metrics_path(self):
-    return os.path.join(self.path, 'metrics')
+  @classmethod
+  def new(cls, path: str, overwrite: bool = False):
+    exists = os.path.exists(path)
+    if exists and not overwrite:
+      raise FileExistsError(f'Run already exists at {path}. Use overwrite=True to overwrite it, or Run.append to append to it.')
+    elif exists:
+      csvs = glob(os.path.join(path, '*.csv'))
+      for csv in csvs:
+        os.remove(csv)
+        
+    os.makedirs(path, exist_ok=True)
+    return Run(path)
+  
+  @classmethod
+  def append(cls, path: str):
+    if not os.path.exists(path):
+      raise FileNotFoundError(f'Run does not exist at {path}')
+    return Run(path)
 
   def metric_path(self, metric: str):
-    return os.path.join(self.metrics_path, f'{metric}.csv')
+    return os.path.join(self.path, f'{metric}.csv')
 
   def log(self, metric: str, *, value, step: int):
+    """Log a metric `value` at a `step`"""
 
     path = self.metric_path(metric)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
 
     if not os.path.exists(path):
       with open(path, 'w') as f:
@@ -66,56 +48,24 @@ class Run:
     with open(path, 'a') as f:
       f.write(f'{step},{value}\n')
 
-
   def read(self, metric: str):
+    """Read `pd.DataFrame` for `metric`"""
     import pandas as pd
-    return pd.read_csv(self.metric_path(metric))
-  
-  @overload
-  def plot(self, metric: str) -> 'plot.Plot':
-    """Plot `metric`"""
-  @overload
-  def plot(self, metric: str, *metrics: str) -> 'plot.Plot':
-    """Plot all `metrics` into a same plot"""
-  @overload
-  def plot(self, *, without_metrics: Container[str]) -> 'plot.Plot':
-    """Plot all metrics except `without_metrics` into a same plot"""
-  @overload
-  def plot(self) -> 'plot.Plot':
-    """Plot all metrics into a same plot"""
+    try:
+      return pd.read_csv(self.metric_path(metric), index_col='step')['value']
+    except FileNotFoundError:
+      ...
 
-  def plot(self, *metrics, without_metrics=None):
-    if len(metrics) == 0:
-      if without_metrics is not None:
-        metrics = { m: self.read(m) for m in self.metrics() if m not in without_metrics }
-        return self._plot_metrics(metrics)
-      else:
-        return self._plot_metrics(self.read_all())
-    elif len(metrics) == 1:
-      return self._plot_metric(metrics[0])
-    else:
-      return self._plot_metrics({ m: self.read(m) for m in metrics })
-
-  def _plot_metric(self, metric: str):
-    df = self.read(metric)
-    p = plot.metric(df)
-    p.ax.set_title(f'{self.id}: {metric} over steps')
-    p.ax.set_xlabel('step')
-    p.ax.set_ylabel(metric)
-    return p
-
-  def _plot_metrics(self, metrics: Mapping):
-    p = plot.metrics(metrics)
-    p.ax.legend()
-    p.ax.set_title(f'{self.id}: Metrics over steps')
-    p.ax.set_xlabel('step')
-    p.ax.set_ylabel('Metrics')
-    return p
-
-  def metrics(self) -> Sequence[str]:
+  def metrics(self) -> list[str]:
     """List all metrics"""
-    return [os.path.splitext(f)[0] for f in os.listdir(self.metrics_path)]
-  
-  def read_all(self):
-    """Read all metrics as `pd.DataFrame` with columns `step` and `value`"""
-    return { metric: self.read(metric) for metric in self.metrics() }
+    return [
+      os.path.splitext(os.path.split(f)[-1])[0]
+      for f in glob(os.path.join(self.path, '*.csv'))
+    ]
+
+def is_run(path: str):
+  return os.path.isdir(path) and glob(os.path.join(path, '*.csv')) != []
+
+def runs(glob_: str) -> list[Run]:
+  """Read all runs in a directory"""
+  return [Run(p) for p in glob(glob_) if is_run(p)]

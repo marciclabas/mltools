@@ -1,12 +1,11 @@
-from typing import Any, Mapping, Literal
-from pydantic import BaseModel
+from typing import Mapping, Literal
+from pydantic import BaseModel, Field
 
 class Meta(BaseModel):
-  
+
   class File(BaseModel):
     file: str
     compression: Literal['zstd'] | None = None
+    num_lines: int | None = None
 
-  samples: int
-  meta: Any | None = None
-  files: Mapping[str, File]
+  lines_dataset: Mapping[str, File] = Field(alias='files')
