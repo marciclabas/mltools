@@ -59,3 +59,19 @@ class Dataset(Iterable[Mapping[str, str]]):
   def _len(self, key: str) -> int | None:
     file = self.file(key)
     return file and file.num_lines
+  
+
+def glob(glob: str, *, recursive: bool = False) -> list[Dataset]:
+  """Read all datasets that match a glob pattern."""
+  from glob import glob as _glob
+  datasets = []
+  for p in _glob(glob, recursive=recursive):
+    try:
+      datasets.append(Dataset.read(p))
+    except:
+      ...
+  return datasets
+
+def chain(datasets: Iterable[Dataset], *keys: K) -> Iter[Mapping[K, str]]:
+  """Chain multiple datasets into a single one."""
+  return I.flatten([ds.samples(*keys) for ds in datasets])

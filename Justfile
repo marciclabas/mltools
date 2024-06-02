@@ -1,6 +1,7 @@
 mod torch-utils
 mod demetric
 mod lines-dataset
+mod checkptr
 
 VENV := ".venv"
 PYTHON := ".venv/bin/python"

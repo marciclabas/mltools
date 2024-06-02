@@ -42,6 +42,8 @@ my-dataset/
 }
 ```
 
+### Usage
+
 ```python
 import lines_dataset as lds
 
@@ -51,6 +53,16 @@ num_samples = ds.len('inputs', 'labels') # int | None
 for x in ds.samples('inputs', 'labels'):
   x['inputs'] # "the first line of inputs.txt\n"
   x['labels'] # "the decompressed first line of labels.txt.zst\n"
+```
+
+A common convenience to use is:
+
+```python
+import lines_dataset as lds
+
+datasets = lds.glob('path/to/datasets/*') # list[lds.Dataset]
+for x in lds.chain(datasets, 'inputs', 'labels'):
+  ...
 ```
 
 And that's it! Simple.

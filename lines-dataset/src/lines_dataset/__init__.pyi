@@ -1,4 +1,4 @@
 from .meta import Meta
-from .dataset import Dataset, iterate_samples
+from .dataset import Dataset, glob, chain
 
-__all__ = ['Meta', 'Dataset', 'iterate_samples']
+__all__ = ['Meta', 'Dataset', 'glob', 'chain']
