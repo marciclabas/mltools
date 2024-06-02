@@ -1,31 +1,27 @@
-from typing import Sequence
+from typing import Mapping, Iterable
 import pandas as pd
-from . import Run
+from . import Metrics
 
-def readall(runs: Sequence[Run], metric: str) -> list[pd.Series]:
-  """Read all runs' dataframes for a metric"""
-  return [s.rename(run.id) for run in runs if (s := run.read(metric)) is not None]
-
-def adj_concat(series: Sequence[pd.Series], copy: bool = False) -> pd.Series:
+def adj_concat(dfs: Iterable[pd.DataFrame], copy: bool = False) -> pd.Series:
   """Concatenate series with cumulative index"""
   cum_idx = 0
-  adj_series = []
+  adj_dfs = []
 
-  for s in series:
-    last_idx = s.index[-1]
-    adj_s = s.copy() if copy else s
-    adj_s.index = adj_s.index + cum_idx
-    cum_idx += last_idx + 1 # type: ignore
-    adj_series.append(adj_s)
+  for df in dfs:
+    last_idx = df.index[-1]
+    adj_df = df.copy() if copy else df
+    adj_df.index = adj_df.index + cum_idx
+    cum_idx += last_idx + 1
+    adj_dfs.append(adj_df)
 
-  return pd.concat(adj_series) # type: ignore
+  return pd.concat(adj_dfs)
 
-def compare(runs: Sequence[Run], metric: str):
+def compare(runs: Mapping[str, Metrics], metric: str):
   """Concat runs' dataframes by column, prepending the run's id to the column names"""
-  series = readall(runs, metric)
-  return pd.concat(series, axis=1)
+  dfs = { id: df for id, run in runs.items() if (df := run.read(metric)) is not None }
+  return pd.concat(dfs, axis=1)
 
-def concat(runs: Sequence[Run], metric: str):
+def concat(runs: Iterable[Metrics], metric: str):
   """Concat runs' dataframes by row, adjusting the index"""
-  dfs = readall(runs, metric)
+  dfs = [df for run in runs if (df := run.read(metric)) is not None]
   return adj_concat(dfs)
