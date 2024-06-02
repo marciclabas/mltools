@@ -32,12 +32,10 @@ metrics = dm.Metrics('metrics/run1.0')
 metrics.read('loss') # pd.Series
 
 # comparing runs
-runs = dm.runs('metrics/run1.*')
+runs = { run: dm.Metrics(run) for run in ['metrics/version1', 'metrics/version2'] }
 df = dm.compare(runs, 'loss') # pd.DataFrame with columns ("run1.0", "run1.1", ...)
 
 # concatenating runs (i.e. they're the same experiment but trained by steps or something)
+runs = [dm.Metrics(run) for run in ['metrics/part1', 'metrics/part2']]
 df = dm.concat(runs, 'loss') # pd.Series with cumulative step indices
-
-# whatever you want to do with the pd.Series's
-ss = dm.readall(runs, 'loss') # list[pd.Series] with `metrics.id` as each name
 ```
