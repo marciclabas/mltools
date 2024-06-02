@@ -1,5 +1,5 @@
 from typing import Mapping, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 class Meta(BaseModel):
 
@@ -8,4 +8,4 @@ class Meta(BaseModel):
     compression: Literal['zstd'] | None = None
     num_lines: int | None = None
 
-  lines_dataset: Mapping[str, File] = Field(alias='files')
+  lines_dataset: Mapping[str, File]

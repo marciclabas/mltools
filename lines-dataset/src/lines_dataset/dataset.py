@@ -1,4 +1,4 @@
-from typing_extensions import Iterable, Mapping, TypeVar, LiteralString
+from typing_extensions import Iterable, Mapping, TypeVar, LiteralString, TextIO
 from dataclasses import dataclass
 import os
 from haskellian import Iter, iter as I, dicts as D
@@ -22,7 +22,9 @@ class Dataset(Iterable[Mapping[str, str]]):
     """Metadata of a given file"""
     if key in self.files:
       file = self.files[key]
-      return Meta.File(file=os.path.join(self.base_path, file.file), compression=file.compression)
+      output = file.model_copy()
+      output.file = os.path.join(self.base_path, file.file)
+      return output
     return None
   
   @I.lift
@@ -61,17 +63,22 @@ class Dataset(Iterable[Mapping[str, str]]):
     return file and file.num_lines
   
 
-def glob(glob: str, *, recursive: bool = False) -> list[Dataset]:
+def glob(glob: str, *, recursive: bool = False, err_stream: TextIO | None = None) -> list[Dataset]:
   """Read all datasets that match a glob pattern."""
   from glob import glob as _glob
   datasets = []
   for p in _glob(glob, recursive=recursive):
     try:
       datasets.append(Dataset.read(p))
-    except:
-      ...
+    except Exception as e:
+      if err_stream:
+        print(f'Error reading dataset at {p}:', e, file=err_stream)
   return datasets
 
 def chain(datasets: Iterable[Dataset], *keys: K) -> Iter[Mapping[K, str]]:
   """Chain multiple datasets into a single one."""
   return I.flatten([ds.samples(*keys) for ds in datasets])
+
+def len(datasets: Iterable[Dataset], *keys: str) -> int | None:
+  """Total length of `keys` in all datasets. (Count as 0 if undefined)"""
+  return sum((l for ds in datasets if (l := ds.len(*keys)) is not None))
