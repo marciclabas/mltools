@@ -24,18 +24,21 @@ runs/
     accuracy.csv
 ```
 
-### Statistics
+### Reading
 
 ```python
 # single metrics
 metrics = dm.Metrics('metrics/run1.0')
-metrics.read('loss') # pd.Series
+metrics.read('loss') # pd.DataFrame
+
+# all metrics
+metrics.read() # pd.DataFrame with a column per metric
 
 # comparing runs
 runs = { run: dm.Metrics(run) for run in ['metrics/version1', 'metrics/version2'] }
-df = dm.compare(runs, 'loss') # pd.DataFrame with columns ("run1.0", "run1.1", ...)
+df = dm.compare(runs, 'loss') # pd.DataFrame with columns ("loss_run1.0", "loss_run1.1", ...)
 
 # concatenating runs (i.e. they're the same experiment but trained by steps or something)
 runs = [dm.Metrics(run) for run in ['metrics/part1', 'metrics/part2']]
-df = dm.concat(runs, 'loss') # pd.Series with cumulative step indices
+df = dm.concat(runs, 'loss') # pd.DataFrame with cumulative step indices
 ```

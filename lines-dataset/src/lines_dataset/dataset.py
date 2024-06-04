@@ -67,7 +67,7 @@ def glob(glob: str, *, recursive: bool = False, err_stream: TextIO | None = None
   """Read all datasets that match a glob pattern."""
   from glob import glob as _glob
   datasets = []
-  for p in _glob(glob, recursive=recursive):
+  for p in sorted(_glob(glob, recursive=recursive)):
     try:
       datasets.append(Dataset.read(p))
     except Exception as e:

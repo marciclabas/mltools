@@ -2,7 +2,7 @@ from typing import Mapping, Iterable
 import pandas as pd
 from . import Metrics
 
-def adj_concat(dfs: Iterable[pd.DataFrame], copy: bool = False) -> pd.Series:
+def adj_concat(dfs: Iterable[pd.DataFrame], copy: bool = False) -> pd.DataFrame:
   """Concatenate series with cumulative index"""
   cum_idx = 0
   adj_dfs = []
@@ -21,7 +21,7 @@ def compare(runs: Mapping[str, Metrics], metric: str):
   dfs = { id: df for id, run in runs.items() if (df := run.read(metric)) is not None }
   return pd.concat(dfs, axis=1)
 
-def concat(runs: Iterable[Metrics], metric: str):
+def concat(runs: Iterable[Metrics], metric: str | None = None):
   """Concat runs' dataframes by row, adjusting the index"""
   dfs = [df for run in runs if (df := run.read(metric)) is not None]
   return adj_concat(dfs)

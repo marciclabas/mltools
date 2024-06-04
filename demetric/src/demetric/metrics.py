@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 import os
-from glob import glob
+from glob import glob as _glob
+from typing import TYPE_CHECKING, overload
+if TYPE_CHECKING:
+  import pandas as pd
 
 @dataclass
 class Metrics:
@@ -16,7 +19,7 @@ class Metrics:
     if exists and not overwrite:
       raise FileExistsError(f'Metrics already exists at {path}. Use overwrite=True to overwrite it, or Metrics.append to append to it.')
     elif exists:
-      csvs = glob(os.path.join(path, '*.csv'))
+      csvs = _glob(os.path.join(path, '*.csv'))
       for csv in csvs:
         os.remove(csv)
         
@@ -45,27 +48,39 @@ class Metrics:
     with open(path, 'a') as f:
       f.write(f'{step},{value}\n')
 
-  def read(self, metric: str):
+  @overload
+  def read(self, metric: str) -> 'pd.DataFrame':
     """Read `pd.DataFrame` for `metric`"""
+  @overload
+  def read(self) -> 'pd.DataFrame':
+    """Read all metrics into a single `pd.DataFrame`"""
+  @overload
+  def read(self, metric: str | None = None): ...
+  def read(self, metric: str | None = None):
+    return self._read(metric) if metric is not None else self._readall()
+
+  def _read(self, metric: str):
     import pandas as pd
     try:
       return pd.read_csv(self.metric_path(metric), index_col='step')
     except FileNotFoundError:
       ...
 
-  def read_all(self):
-    return { metric: self.read(metric) for metric in self.metrics() }
+  def _readall(self):
+    import pandas as pd
+    dfs = [self.read(metric) for metric in self.metrics()]
+    return pd.concat(dfs, axis=1)
 
   def metrics(self) -> list[str]:
     """List all metrics"""
     return [
       os.path.splitext(os.path.split(f)[-1])[0]
-      for f in glob(os.path.join(self.path, '*.csv'))
+      for f in _glob(os.path.join(self.path, '*.csv'))
     ]
 
 def is_run(path: str):
-  return os.path.isdir(path) and glob(os.path.join(path, '*.csv')) != []
+  return os.path.isdir(path) and _glob(os.path.join(path, '*.csv')) != []
 
-def runs(glob_: str, recursive: bool = False) -> list[Metrics]:
+def glob(glob: str, recursive: bool = False) -> list[Metrics]:
   """Find runs metrics in a directory"""
-  return [Metrics(p) for p in glob(glob_, recursive=recursive) if is_run(p)]
+  return [Metrics(p) for p in sorted(_glob(glob, recursive=recursive)) if is_run(p)]
