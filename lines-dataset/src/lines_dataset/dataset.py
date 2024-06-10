@@ -34,10 +34,12 @@ class Dataset(Iterable[Mapping[str, str]]):
     if file:
       if file.compression == 'zstd':
         from .compression import iterate
-        yield from iterate(file.file)
+        for line in iterate(file.file):
+          yield line.rstrip('\n')
       else:
         with open(file.file) as f:
-          yield from f
+          for line in f:
+            yield line.rstrip('\n')
 
   def samples(self, *keys: K) -> Iter[Mapping[K, str]]:
     """Iterate all samples of `keys`. If no `keys` are provided, iterates all files."""

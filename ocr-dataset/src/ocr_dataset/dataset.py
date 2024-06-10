@@ -4,6 +4,16 @@ from haskellian import Iter, iter as I
 import lines_dataset as lds
 import files_dataset as fds
 
+class Meta(lds.Meta, fds.Meta):
+  
+  @classmethod
+  def new_tar(cls, num_samples: int, *, images: str = 'images', labels: str = 'labels'):
+    return Meta(files_dataset={
+      images: fds.Meta.Archive(archive=f'{images}.tar', format='tar', num_files=num_samples)
+    }, lines_dataset={
+      labels: lds.Meta.File(file=f'{labels}.txt', num_lines=num_samples)
+    })
+
 @dataclass
 class Dataset:
 
