@@ -23,12 +23,8 @@ class LazyDataset(Dataset[T], Generic[T]):
       return x
     
 class IterDataset(IterableDataset[T], Generic[T]):
-  def __init__(self, samples: Callable[[], Iterable[T]], num_samples: int):
+  def __init__(self, samples: Callable[[], Iterable[T]]):
     self.samples = samples
-    self.num_samples = num_samples
-
-  def __len__(self):
-    return self.num_samples
 
   def __iter__(self):
     return iter(self.samples())

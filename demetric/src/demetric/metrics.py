@@ -1,7 +1,7 @@
+from typing import TYPE_CHECKING, overload, Mapping, Any
 from dataclasses import dataclass
 import os
 from glob import glob as _glob
-from typing import TYPE_CHECKING, overload
 if TYPE_CHECKING:
   import pandas as pd
 
@@ -35,9 +35,20 @@ class Metrics:
   def metric_path(self, metric: str):
     return os.path.join(self.path, f'{metric}.csv')
 
-  def log(self, metric: str, *, value, step: int):
-    """Log a metric `value` at a `step`"""
-
+  @overload
+  def log(self, metric: str, /, *, value, step: int):
+    """Log a metric `value` at `step`"""
+  @overload
+  def log(self, metrics: Mapping[str, Any], /, *, step: int):
+    """Log all `metrics` values at `step`"""
+  def log(self, metric: str | Mapping[str, Any], *, value = None, step: int):
+    if isinstance(metric, str):
+      self._log(metric, value=value, step=step)
+    else:
+      for metric, value in metric.items():
+        self._log(metric, value=value, step=step)
+  
+  def _log(self, metric: str, *, value, step: int):
     path = self.metric_path(metric)
 
     if not os.path.exists(path):

@@ -3,12 +3,12 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lines-dataset"
-version = "0.2.5"
+name = "files-dataset"
+version = "0.1.1"
 authors = [
   {name="Marcel Claramunt", email="marcel@moveread.com"}
 ]
-description = "Dead simple standard for storing/loading datasets as lines of text. Supports zstd compression."
+description = "Simple, composable standard for storing datasets as one sample per file"
 dependencies = [
   "pydantic", "haskellian"
 ]
@@ -16,7 +16,10 @@ requires-python = ">=3.10"
 readme = {file="README.md", content-type="text/markdown"}
 
 [project.urls]
-repo = "https://github.com/moveread/REPO.git"
+repo = "https://github.com/marciclabas/mltools.git"
+
+[project.scripts]
+files-dataset = "files_dataset.cli:main"
 
 # [project.optional-dependencies]
 # test = [

@@ -1,6 +1,8 @@
 mod torch-utils
 mod demetric
 mod lines-dataset
+mod files-dataset
+mod ocr-dataset
 mod checkptr
 
 VENV := ".venv"

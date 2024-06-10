@@ -3,14 +3,14 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lines-dataset"
-version = "0.2.5"
+name = "ocr-dataset"
+version = "0.1.2"
 authors = [
   {name="Marcel Claramunt", email="marcel@moveread.com"}
 ]
-description = "Dead simple standard for storing/loading datasets as lines of text. Supports zstd compression."
+description = "Dead simple standard for storing/loading OCR datasets (image + label pairs)"
 dependencies = [
-  "pydantic", "haskellian"
+  "lines-dataset", "files-dataset", "haskellian"
 ]
 requires-python = ">=3.10"
 readme = {file="README.md", content-type="text/markdown"}

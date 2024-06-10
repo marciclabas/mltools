@@ -22,20 +22,20 @@ my-dataset/
 `meta.json`:
 ```json
 {
-  "lines-dataset": {
+  "lines_dataset": {
     "inputs": {
       "file": "my-inputs.txt",
-      "samples": 3000 // optionally specify the number of lines
+      "num_lines": 3000 // optionally specify the number of lines
     },
     "labels": {
       "file": "my-compressed-labels.txt.zst",
       "compression": "zstd",
-      "samples": 3000
+      "num_lines": 3000
     },
     "other-labels": {
       "file": "other-labels.txt.zst",
       "compression": "zstd",
-      "samples": 2000 // not all files need to have the same number of lines, as long as samples match line by line. The shortest file will determine the length of the dataset.
+      "num_lines": 2000 // not all files need to have the same number of lines, as long as samples match line by line. The shortest file will determine the length of the dataset.
     },
   },
   // you can add other stuff if you want to
