@@ -12,9 +12,6 @@ class MetricEveryN(keras.metrics.Metric):
     self.batch_counter = self.add_weight(name='batch_counter', initializer='zeros')
 
   def update_state(self, y_true, y_pred, sample_weight=None):
-    self.batch_counter.assign_add(1)
-
-    # Only compute the metric every N batches
     result = ops.cond(
       ops.equal(self.batch_counter % self.n, 0),
       lambda: ops.mean(self.metric_fn(y_true, y_pred)),
@@ -26,13 +23,10 @@ class MetricEveryN(keras.metrics.Metric):
     )
     self.total.assign_add(result)
     self.count.assign_add(count)
+    self.batch_counter.assign_add(1)
 
   def result(self):
-    return ops.cond(
-      ops.equal(self.count, 0),
-      lambda: 0.0,
-      lambda: self.total / self.count
-    )
+    return self.total / self.count
 
   def reset_states(self):
     self.total.assign(0.0)
