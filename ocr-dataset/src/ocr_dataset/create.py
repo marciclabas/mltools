@@ -1,7 +1,7 @@
 from typing import Sequence
 import os
 import fs
-from .dataset import Meta
+from .dataset import MetaJson
 
 def create_tar(
   base_path: str,
@@ -11,7 +11,7 @@ def create_tar(
   images_ext: str = 'jpg',
 ):
   os.makedirs(base_path, exist_ok=True)
-  meta = Meta.new_tar(len(samples), images=images_name, labels=labels_name)
+  meta = MetaJson.new_tar(len(samples), images=images_name, labels=labels_name)
   with open(f'{base_path}/meta.json', 'w') as f:
     f.write(meta.model_dump_json(indent=2))
 

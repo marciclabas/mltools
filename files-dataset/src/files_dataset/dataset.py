@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from glob import glob as _glob
 import os
 from haskellian import iter as I, dicts as D, Iter
-from .meta import Meta
+from .meta import MetaJson, Archive
 
 K = TypeVar('K', bound=str)
 
@@ -11,15 +11,15 @@ K = TypeVar('K', bound=str)
 class Dataset:
 
   base_path: str
-  archives: Mapping[str, Meta.Archive]
+  archives: Mapping[str, Archive]
 
   @classmethod
   def read(cls, base: str) -> 'Dataset':
     with open(os.path.join(base, 'meta.json')) as f:
-      meta = Meta.model_validate_json(f.read())
+      meta = MetaJson.model_validate_json(f.read())
     return Dataset(base, meta.files_dataset)
   
-  def archive(self, key: str) -> Meta.Archive | None:
+  def archive(self, key: str) -> Archive | None:
     """Metadata of a given archive"""
     if (archive := self.archives.get(key)) is not None:
       output = archive.model_copy()

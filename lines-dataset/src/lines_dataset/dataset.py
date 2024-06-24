@@ -2,7 +2,7 @@ from typing_extensions import Iterable, Mapping, TypeVar, LiteralString, TextIO
 from dataclasses import dataclass
 import os
 from haskellian import Iter, iter as I, dicts as D
-from .meta import Meta
+from .meta import MetaJson, File
 
 K = TypeVar('K', bound=LiteralString)
 
@@ -10,15 +10,15 @@ K = TypeVar('K', bound=LiteralString)
 class Dataset(Iterable[Mapping[str, str]]):
 
   base_path: str
-  files: Mapping[str, Meta.File]
+  files: Mapping[str, File]
 
   @classmethod
   def read(cls, base: str) -> 'Dataset':
     with open(os.path.join(base, 'meta.json')) as f:
-      meta = Meta.model_validate_json(f.read())
+      meta = MetaJson.model_validate_json(f.read())
     return Dataset(base, meta.lines_dataset)
   
-  def file(self, key: str) -> Meta.File | None:
+  def file(self, key: str) -> File | None:
     """Metadata of a given file"""
     if key in self.files:
       file = self.files[key]
