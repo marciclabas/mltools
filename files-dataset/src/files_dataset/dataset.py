@@ -13,11 +13,20 @@ class Dataset:
   base_path: str
   archives: Mapping[str, Archive]
 
-  @classmethod
-  def read(cls, base: str) -> 'Dataset':
+  @staticmethod
+  def read(base: str) -> 'Dataset':
+    """Reads a daataset at `{path}/meta.json`. Throws if not found."""
     with open(os.path.join(base, 'meta.json')) as f:
       meta = MetaJson.model_validate_json(f.read())
     return Dataset(base, meta.files_dataset)
+  
+  @staticmethod
+  def at(base: str) -> 'Dataset':
+    """Reads or creates a new dataset at `{path}/meta.json`"""
+    try:
+      return Dataset.read(base)
+    except:
+      return Dataset(base, {})
   
   def archive(self, key: str) -> Archive | None:
     """Metadata of a given archive"""

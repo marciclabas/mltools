@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lines-dataset"
-version = "0.2.6"
+version = "0.2.7"
 authors = [
   {name="Marcel Claramunt", email="marcel@moveread.com"}
 ]
@@ -16,10 +16,10 @@ requires-python = ">=3.10"
 readme = {file="README.md", content-type="text/markdown"}
 
 [project.urls]
-repo = "https://github.com/moveread/REPO.git"
+repo = "https://github.com/marciclabas/mltools.git"
 
-# [project.optional-dependencies]
-# test = [
-#   "pytest < 5.0.0",
-#   "pytest-cov[all]"
-# ]
+[project.optional-dependencies]
+cli = ["typer"]
+
+[project.scripts]
+lds = "lines_dataset.cli:app"

@@ -18,9 +18,6 @@ readme = {file="README.md", content-type="text/markdown"}
 [project.urls]
 repo = "https://github.com/marciclabas/mltools.git"
 
-[project.scripts]
-files-dataset = "files_dataset.cli:main"
-
 # [project.optional-dependencies]
 # test = [
 #   "pytest < 5.0.0",

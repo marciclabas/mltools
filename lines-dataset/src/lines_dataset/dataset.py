@@ -12,11 +12,20 @@ class Dataset(Iterable[Mapping[str, str]]):
   base_path: str
   files: Mapping[str, File]
 
-  @classmethod
-  def read(cls, base: str) -> 'Dataset':
+  @staticmethod
+  def read(base: str) -> 'Dataset':
+    """Reads a daataset at `{path}/meta.json`. Throws if not found."""
     with open(os.path.join(base, 'meta.json')) as f:
       meta = MetaJson.model_validate_json(f.read())
     return Dataset(base, meta.lines_dataset)
+  
+  @staticmethod
+  def at(base: str) -> 'Dataset':
+    """Reads or creates a new dataset at `{path}/meta.json`"""
+    try:
+      return Dataset.read(base)
+    except:
+      return Dataset(base, {})
   
   def file(self, key: str) -> File | None:
     """Metadata of a given file"""
