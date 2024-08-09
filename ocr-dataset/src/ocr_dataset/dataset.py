@@ -12,7 +12,7 @@ class MetaJson(lds.MetaJson, fds.MetaJson):
     }, lines_dataset={
       labels: lds.File(file=f'{labels}.txt', num_lines=num_samples)
     })
-
+  
 @dataclass
 class Dataset:
 
@@ -20,12 +20,22 @@ class Dataset:
   images: fds.Dataset
   labels: lds.Dataset
 
-  @classmethod
-  def read(cls, base: str) -> 'Dataset':
+  @staticmethod
+  def read(base: str) -> 'Dataset':
+    """Reads a dataset from `{base}/meta.json`. Throws if it doesn't exist."""
     return Dataset(
       base_path=base,
       labels=lds.Dataset.read(base),
       images=fds.Dataset.read(base),
+    )
+  
+  @staticmethod
+  def at(base: str) -> 'Dataset':
+    """Reads or creates an empty dataset at `{base}/meta.json`."""
+    return Dataset(
+      base_path=base,
+      labels=lds.Dataset.at(base),
+      images=fds.Dataset.at(base),
     )
   
   @I.lift

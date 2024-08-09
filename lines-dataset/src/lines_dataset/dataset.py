@@ -15,8 +15,7 @@ class Dataset(Iterable[Mapping[str, str]]):
   @staticmethod
   def read(base: str) -> 'Dataset':
     """Reads a daataset at `{path}/meta.json`. Throws if not found."""
-    with open(os.path.join(base, 'meta.json')) as f:
-      meta = MetaJson.model_validate_json(f.read())
+    meta = MetaJson.read(os.path.join(base, 'meta.json'))
     return Dataset(base, meta.lines_dataset)
   
   @staticmethod

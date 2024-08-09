@@ -42,16 +42,16 @@ class Dataset:
     if (archive := self.archive(key)) is not None:
       if archive.format == 'zip':
         from .compression import iterate_zip
-        files = _glob(archive.archive)
+        files = _glob(archive.archive, recursive=True)
         for file in files:
           yield from iterate_zip(file)
       elif archive.format == 'tar':
         from .compression import iterate_tar
-        files = _glob(archive.archive)
+        files = _glob(archive.archive, recursive=True)
         for file in files:
           yield from iterate_tar(file)
       else:
-        files = _glob(archive.archive)
+        files = _glob(archive.archive, recursive=True)
         for file in files:
           with open(file, 'rb') as f:
             yield f.read()

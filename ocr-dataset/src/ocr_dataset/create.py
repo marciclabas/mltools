@@ -1,6 +1,8 @@
 from typing import Sequence
 import os
 import fs
+import files_dataset as fds
+import lines_dataset as lds
 from .dataset import MetaJson
 
 def create_tar(
@@ -11,9 +13,17 @@ def create_tar(
   images_ext: str = 'jpg',
 ):
   os.makedirs(base_path, exist_ok=True)
-  meta = MetaJson.new_tar(len(samples), images=images_name, labels=labels_name)
-  with open(f'{base_path}/meta.json', 'w') as f:
-    f.write(meta.model_dump_json(indent=2))
+  meta_path = os.path.join(base_path, 'meta.json')
+  meta = MetaJson.at(meta_path)
+  meta.files_dataset = {
+    **meta.files_dataset,
+    images_name: fds.Archive(archive=f'{images_name}.tar', format='tar', num_files=len(samples))
+  }
+  meta.lines_dataset = {
+    **meta.lines_dataset,
+    labels_name: lds.File(file=f'{labels_name}.txt', num_lines=len(samples))
+  }
+  meta.dump(meta_path)
 
   imgs, labs = zip(*samples)
   
